@@ -2,34 +2,19 @@
 // @flow
 'use strict';
 const meow = require('meow');
-const lib = require('./');
+const boltWebpackAnalyzer = require('./');
 
 const cli = meow({
   help: `
     Usage
-      $ cli <command>
-
-    Commands
-      baz
-      bat
-
-    Flags
-      --foo, -f      Foo
-      --bar, -b      Bar
+      $ bolt-webpack-analyzer
   `,
-  flags: {
-    foo: {
-      type: 'boolean',
-      alias: ['f'],
-    },
-    bar: {
-      type: 'boolean',
-      alias: ['b'],
-    },
-  },
+  flags: {},
 });
 
-lib(cli.input[0], cli.flags).catch(err => {
+boltWebpackAnalyzer({
+  cwd: process.cwd(),
+}).catch(err => {
   console.error(err);
   process.exit(1);
 });
