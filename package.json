@@ -4,7 +4,7 @@
   "description": "Builds and analyzes webpack bundles for bolt packages",
   "bin": "cli.js",
   "main": "index.js",
-  "repository": "https://github.com/jamiebuilds/cli-starter",
+  "repository": "https://github.com/padmaia/bolt-webpack-analyzer",
   "author": "Maia Teegarden <padmaia@me.com>",
   "license": "MIT",
   "keywords": [
