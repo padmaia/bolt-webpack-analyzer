@@ -12,8 +12,11 @@
     "webpack"
   ],
   "files": [
+    "cli.js",
+    "config.js",
+    "external.js",
     "index.js",
-    "cli.js"
+    "regexes.js"
   ],
   "scripts": {
     "test": "ava"
