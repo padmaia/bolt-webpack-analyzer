@@ -1,6 +1,6 @@
 {
   "name": "bolt-webpack-analyzer",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Builds and analyzes webpack bundles for bolt packages",
   "bin": "cli.js",
   "main": "index.js",
