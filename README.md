@@ -1,24 +1,19 @@
-# cli-starter
+# bolt-webpack-analyzer
 
-> CLI starter kit
+> Builds and analyzes webpack bundles for bolt packages
 
 ## Install
 
 ```sh
-npm i -g cli-starter
+npm i -g bolt-webpack-analyzer
 ```
 
 ## Usage
 
 ```
 Usage
-  $ cli <command>
-
-Commands
-  baz
-  bat
+  $ bolt-webpack-analyzer
 
 Flags
-  --foo, -f      Foo
-  --bar, -b      Bar
+  --ignore, -i      Ignore packages(can be globs)
 ```
