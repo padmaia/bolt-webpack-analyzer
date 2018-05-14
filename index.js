@@ -26,7 +26,7 @@ const mkdir = promisify(fs.mkdir);
 const writeFile = promisify(fs.writeFile);
 const stat = promisify(fs.stat);
 
-async function tryMkdir(filePath) {
+async function ensureDir(filePath) {
   try {
     await mkdir(filePath);
   } catch (err) {
@@ -40,11 +40,12 @@ function normalizePackageName(packageName) {
   return packageName.replace(/\//g, '--');
 }
 
-function createEntry(cacheDir, id) {
+function createEntry(cacheDir, name) {
+  let id = 'pkg--' + normalizePackageName(name);
   let input = path.join(cacheDir, id + '.js');
   let output = path.join(cacheDir, id + '.bundle.js');
   let outputGz = path.join(cacheDir, id + '.bundle.js.gz');
-  return { id, input, output, outputGz };
+  return { name, input, output, outputGz };
 }
 
 async function bundleEntry(cacheDir, entry) {
@@ -72,28 +73,30 @@ async function bundleEntry(cacheDir, entry) {
     sizes.outputBytesGz = outputStatsGz.size;
   }
 
-  return { code, sizes };
+  return { entry, code, sizes };
 }
 
 async function boltWebpackAnalyzer(
   opts /*: Opts */
 ) {
-  let cwd = opts.cwd;
+  let { cwd, ignore } = opts;
   let nodeModulesDir = await findUp('node_modules', { cwd });
   let nodeModulesCacheDir = path.join(nodeModulesDir, '.cache');
   let cacheDir = path.join(nodeModulesCacheDir, 'bolt-webpack-analyzer');
 
-  await tryMkdir(nodeModulesCacheDir);
-  await tryMkdir(cacheDir);
+  await ensureDir(nodeModulesCacheDir);
+  await ensureDir(cacheDir);
+
+  // TODO: implement this in Bolt
+  let ignoreFs = `{${ignore.reduce((ignoreString, currValue) => `${ignoreString},${currValue}`)}}`;
 
   let packages = await bolt.getWorkspaces({
     cwd,
-    ignoreFs: '{build/*,packages/css-packs/*,website}'
+    ignoreFs
   });
 
   let entries = await Promise.all(packages.map(async pkg => {
-    let id = 'pkg--' + normalizePackageName(pkg.name);
-    let entry = createEntry(cacheDir, id);
+    let entry = createEntry(cacheDir, pkg.name);
 
     let mainPath = path.join(pkg.dir, pkg.config.main || 'index.js');
     let relativePath = path.relative(cacheDir, mainPath);
@@ -102,19 +105,19 @@ async function boltWebpackAnalyzer(
     return entry;
   }));
   
-  let outputInfo = await Promise.all(entries.map(entry => processLimit(async () => {
-    let { id } = entry;
-    console.log(chalk.cyan(`Building ${id}...`));
+  let results = await Promise.all(entries.map(entry => processLimit(async () => {
+    let { name } = entry;
+    console.log(chalk.cyan(`Building ${name}...`));
     let { code, sizes } = await bundleEntry(cacheDir, entry);
     if (code !== 0) {
-      console.error(chalk.red(`${id} exited with ${code}`));
+      console.error(chalk.red(`${name} exited with ${code}`));
     } else {
-      console.log(chalk.green(`${id} (${prettyBytes(sizes.outputBytes)} min, ${prettyBytes(sizes.outputBytesGz)} min+gz)`));
+      console.log(chalk.green(`${name} (${prettyBytes(sizes.outputBytes)} min, ${prettyBytes(sizes.outputBytesGz)} min+gz)`));
     }
-    return  { id, sizes };
+    return  { entry, sizes };
   })));
 
-  
+  return results;
 }
 
 module.exports = boltWebpackAnalyzer;
